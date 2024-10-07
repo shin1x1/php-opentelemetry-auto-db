@@ -1,0 +1,38 @@
+services:
+  php-fpm:
+    build: docker/php
+    volumes:
+      - .:/app
+      - ./docker/php/php-fpm/php-fpm.conf:/usr/local/etc/php-fpm.conf
+      - ./docker/php/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+    working_dir: /app
+    environment:
+      OTEL_PHP_AUTOLOAD_ENABLED: true
+      OTEL_SERVICE_NAME: app
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      OTEL_PHP_DISABLED_INSTRUMENTATIONS: pdo
+    depends_on:
+      mysql:
+        condition: service_healthy
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pass
+      MYSQL_DATABASE: app
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 1s
+      timeout: 5s
+      retries: 30
+  otel-collector:
+    image: otel/opentelemetry-collector
+    volumes:
+      - ./docker/otel-collector/otel-collector-config.yaml:/etc/otelcol/config.yaml
+  jaeger:
+    image: jaegertracing/all-in-one
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - 16686:16686
