@@ -139,22 +139,22 @@ class MysqliInstrumentationTest extends TestCase
 
     private function getDBHost(): string
     {
-        return getenv('DB_HOST') ?? 'localhost';
+        return getenv('DB_HOST') ?: 'localhost';
     }
 
     private function getDBUser(): string
     {
-        return getenv('DB_USER') ?? 'user';
+        return getenv('DB_USER') ?: 'user';
     }
 
     private function getDBPass(): string
     {
-        return getenv('DB_PASS') ?? 'pass';
+        return getenv('DB_PASS') ?: 'pass';
     }
 
     private function getDBName(): string
     {
-        return getenv('DB_NAME') ?? 'app';
+        return getenv('DB_NAME') ?: 'app';
     }
 
     private function createMysqli(): mysqli
