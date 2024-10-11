@@ -24,7 +24,8 @@ final class TraceUtil
         ?int                  $lineno
     ): SpanBuilderInterface
     {
-        /** @psalm-suppress ArgumentTypeCoercion */
+        assert(strlen($name) > 0);
+
         return $instrumentation->tracer()
             ->spanBuilder($name)
             ->setAttribute(TraceAttributes::CODE_FUNCTION, $function)
@@ -57,6 +58,9 @@ final class TraceUtil
         return $span;
     }
 
+    /**
+     * @param array<array-key, mixed> $params
+     */
     public static function startWithSql(
         CachedInstrumentation $instrumentation,
         string                $sql,

@@ -19,7 +19,10 @@ final class BoundParameters implements JsonSerializable
         $this->parameters[$key] = $value;
     }
 
-    public function toArray()
+    /**
+     * @return list<mixed>
+     */
+    public function toArray(): array
     {
         return array_values($this->parameters);
     }

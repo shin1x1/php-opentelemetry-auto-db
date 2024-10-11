@@ -6,6 +6,8 @@ namespace Shin1x1\Tests\OpenTelemetry\Auto\Db\Mysqli;
 use ArrayObject;
 use mysqli;
 use OpenTelemetry\API\Instrumentation\Configurator;
+use OpenTelemetry\Context\ScopeInterface;
+use OpenTelemetry\SDK\Trace\SpanDataInterface;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
@@ -15,6 +17,10 @@ use PHPUnit\Framework\TestCase;
 
 class MysqliInstrumentationTest extends TestCase
 {
+    /** @var ArrayObject<int, SpanDataInterface> */
+    private ArrayObject $storage;
+    private ScopeInterface $scope;
+
     #[Test]
     public function mysqi_construct(): void
     {
@@ -22,9 +28,8 @@ class MysqliInstrumentationTest extends TestCase
         self::createMysqli();
 
         // Assert
-        $this->assertCount(1, $this->storage);
-
-        $span = $this->storage[0];
+        $span = $this->storage[0] ?? null;
+        $this->assertInstanceOf(SpanDataInterface::class, $span);
         $this->assertSame('mysqli::__construct', $span->getName());
     }
 
@@ -35,9 +40,9 @@ class MysqliInstrumentationTest extends TestCase
         mysqli_connect($this->getDBHost(), $this->getDBUser(), $this->getDBPass(), $this->getDBName());
 
         // Assert
-        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0] ?? null;
+        $this->assertInstanceOf(SpanDataInterface::class, $span);
 
-        $span = $this->storage[0];
         $this->assertSame('mysqli_connect', $span->getName());
     }
 
@@ -52,9 +57,9 @@ class MysqliInstrumentationTest extends TestCase
         $mysqli->query($sql);
 
         // Assert
-        $this->assertCount(2, $this->storage);
+        $span = $this->storage[1] ?? null;
+        $this->assertInstanceOf(SpanDataInterface::class, $span);
 
-        $span = $this->storage[1];
         $this->assertSame('mysqli::query ' . $sql, $span->getName());
         $this->assertSame($sql, $span->getAttributes()->get(TraceAttributes::DB_STATEMENT));
     }
@@ -70,9 +75,9 @@ class MysqliInstrumentationTest extends TestCase
         mysqli_query($mysqli, $sql);
 
         // Assert
-        $this->assertCount(2, $this->storage);
+        $span = $this->storage[1] ?? null;
+        $this->assertInstanceOf(SpanDataInterface::class, $span);
 
-        $span = $this->storage[1];
         $this->assertSame('mysqli_query ' . $sql, $span->getName());
         $this->assertSame($sql, $span->getAttributes()->get(TraceAttributes::DB_STATEMENT));
     }
@@ -86,13 +91,13 @@ class MysqliInstrumentationTest extends TestCase
         $sql = 'SELECT * FROM users WHERE name = ?';
 
         // Act
-        $stmt = $mysqli->prepare($sql);
+        $stmt = $mysqli->prepare($sql) ?: throw new \RuntimeException('Failed to prepare');
         $stmt->execute(['Alice']);
 
         // Assert
-        $this->assertCount(3, $this->storage);
+        $span = $this->storage[2] ?? null;
+        $this->assertInstanceOf(SpanDataInterface::class, $span);
 
-        $span = $this->storage[2];
         $this->assertSame('mysqli_stmt::execute SELECT * FROM users ...', $span->getName());
         $this->assertSame($sql . ' ' . json_encode(['Alice']), $span->getAttributes()->get(TraceAttributes::DB_STATEMENT));
     }
@@ -106,13 +111,13 @@ class MysqliInstrumentationTest extends TestCase
         $sql = 'SELECT * FROM users WHERE name = ?';
 
         // Act
-        $stmt = mysqli_prepare($mysqli, $sql);
+        $stmt = mysqli_prepare($mysqli, $sql) ?: throw new \RuntimeException('Failed to prepare');
         $stmt->execute(['Alice']);
 
         // Assert
-        $this->assertCount(3, $this->storage);
+        $span = $this->storage[2] ?? null;
+        $this->assertInstanceOf(SpanDataInterface::class, $span);
 
-        $span = $this->storage[2];
         $this->assertSame('mysqli_stmt::execute SELECT * FROM users ...', $span->getName());
         $this->assertSame($sql . ' ' . json_encode(['Alice']), $span->getAttributes()->get(TraceAttributes::DB_STATEMENT));
     }

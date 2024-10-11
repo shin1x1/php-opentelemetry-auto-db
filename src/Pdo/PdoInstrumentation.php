@@ -21,6 +21,7 @@ final class PdoInstrumentation
             null,
             'https://opentelemetry.io/schemas/1.24.0'
         );
+        /** @var WeakMap<PDOStatement, BoundParameters> */
         $boundParameters = new WeakMap();
 
         hook(
@@ -48,7 +49,7 @@ final class PdoInstrumentation
         hook(
             PDO::class,
             'prepare',
-            post: static function (PDO $pdo, array $params, PDOStatement $statement) use ($instrumentation, $boundParameters) {
+            post: static function (PDO $pdo, array $params, PDOStatement $statement) use ($boundParameters) {
                 $boundParameters[$statement] = new BoundParameters();
             },
         );
@@ -56,7 +57,7 @@ final class PdoInstrumentation
         hook(
             PDOStatement::class,
             'bindValue',
-            post: static function (PDOStatement $statement, array $params) use ($instrumentation, $boundParameters) {
+            post: static function (PDOStatement $statement, array $params) use ($boundParameters) {
                 $boundParameters[$statement]->add($params[0], $params[1]);
             },
         );
@@ -64,7 +65,7 @@ final class PdoInstrumentation
         hook(
             PDOStatement::class,
             'bindParam',
-            post: static function (PDOStatement $statement, array $params) use ($instrumentation, $boundParameters) {
+            post: static function (PDOStatement $statement, array $params) use ($boundParameters) {
                 $boundParameters[$statement]->add($params[0], $params[1]);
             },
         );
@@ -73,7 +74,7 @@ final class PdoInstrumentation
             hook(
                 PDO::class,
                 $function,
-                pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation, $boundParameters) {
+                pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                     $sql = $params[0] ?? '';
                     TraceUtil::startWithSql($instrumentation, $sql, [], $class, $function, $filename, $lineno);
                 },
@@ -87,7 +88,7 @@ final class PdoInstrumentation
             hook(
                 PDO::class,
                 $function,
-                pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation, $boundParameters) {
+                pre: static function (PDO $pdo, array $params, string $class, string $function, ?string $filename, ?int $lineno) use ($instrumentation) {
                     TraceUtil::start($instrumentation, $class, $function, $filename, $lineno);
                 },
                 post: static function (PDO $pdo, array $params, mixed $retval, ?Throwable $exception) {
@@ -103,7 +104,7 @@ final class PdoInstrumentation
                 if (count($params) > 0) {
                     $boundParameter = array_values($params[0]);
                 } else {
-                    $boundParameter = $boundParameters[$statement]?->toArray() ?? [];
+                    $boundParameter = ($boundParameters[$statement] ?? null)?->toArray() ?? [];
                 }
 
                 TraceUtil::startWithSql(

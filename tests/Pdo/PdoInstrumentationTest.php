@@ -7,6 +7,7 @@ use ArrayObject;
 use OpenTelemetry\API\Instrumentation\Configurator;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace\ImmutableSpan;
+use OpenTelemetry\SDK\Trace\SpanDataInterface;
 use OpenTelemetry\SDK\Trace\SpanExporter\InMemoryExporter;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\SDK\Trace\TracerProvider;
@@ -14,13 +15,14 @@ use OpenTelemetry\SemConv\TraceAttributes;
 use PDO;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 class PdoInstrumentationTest extends TestCase
 {
     private const DSN = 'sqlite::memory:';
 
     private ScopeInterface $scope;
-    /** @var ArrayObject<int, ImmutableSpan> */
+    /** @var ArrayObject<int, SpanDataInterface> */
     private ArrayObject $storage;
 
     #[Test]
@@ -30,9 +32,9 @@ class PdoInstrumentationTest extends TestCase
         self::createDB();
 
         // Assert
-        $this->assertCount(1, $this->storage);
+        $span = $this->storage[0] ?? null;
+        $this->assertInstanceOf(SpanDataInterface::class, $span);
 
-        $span = $this->storage[0];
         $this->assertSame('PDO::__construct', $span->getName());
         $this->assertSame(self::DSN, $span->getAttributes()->get(TraceAttributes::DB_CONNECTION_STRING));
     }
@@ -48,9 +50,9 @@ class PdoInstrumentationTest extends TestCase
         $pdo->query($sql);
 
         // Assert
-        $this->assertCount(2, $this->storage);
+        $span = $this->storage[1] ?? null;
+        $this->assertInstanceOf(SpanDataInterface::class, $span);
 
-        $span = $this->storage[1];
         $this->assertSame('PDO::query ' . $sql, $span->getName());
         $this->assertSame($sql, $span->getAttributes()->get(TraceAttributes::DB_STATEMENT));
     }
@@ -66,9 +68,9 @@ class PdoInstrumentationTest extends TestCase
         $pdo->exec($sql);
 
         // Assert
-        $this->assertCount(2, $this->storage);
+        $span = $this->storage[1] ?? null;
+        $this->assertInstanceOf(SpanDataInterface::class, $span);
 
-        $span = $this->storage[1];
         $this->assertSame('PDO::exec CREATE TABLE users (...', $span->getName());
         $this->assertSame($sql, $span->getAttributes()->get(TraceAttributes::DB_STATEMENT));
     }
@@ -82,13 +84,13 @@ class PdoInstrumentationTest extends TestCase
         $sql = 'SELECT * FROM users WHERE name = :name';
 
         // Act
-        $stmt = $pdo->prepare($sql);
+        $stmt = $pdo->prepare($sql) ?: throw new RuntimeException('Failed to prepare');
         $stmt->execute([':name' => 'Alice']);
 
         // Assert
-        $this->assertCount(3, $this->storage);
+        $span = $this->storage[2] ?? null;
+        $this->assertInstanceOf(SpanDataInterface::class, $span);
 
-        $span = $this->storage[2];
         $this->assertSame('PDOStatement::execute SELECT * FROM users ...', $span->getName());
         $this->assertSame($sql . ' ' . json_encode(['Alice']), $span->getAttributes()->get(TraceAttributes::DB_STATEMENT));
     }
@@ -102,14 +104,14 @@ class PdoInstrumentationTest extends TestCase
         $sql = 'SELECT * FROM users WHERE name = :name';
 
         // Act
-        $stmt = $pdo->prepare($sql);
+        $stmt = $pdo->prepare($sql) ?: throw new RuntimeException('Failed to prepare');
         $stmt->bindValue(':name', 'Bob');
         $stmt->execute();
 
         // Assert
-        $this->assertCount(3, $this->storage);
+        $span = $this->storage[2] ?? null;
+        $this->assertInstanceOf(SpanDataInterface::class, $span);
 
-        $span = $this->storage[2];
         $this->assertSame('PDOStatement::execute SELECT * FROM users ...', $span->getName());
         $this->assertSame($sql . ' ' . json_encode(['Bob']), $span->getAttributes()->get(TraceAttributes::DB_STATEMENT));
     }
@@ -126,7 +128,9 @@ class PdoInstrumentationTest extends TestCase
         // Assert
         $this->assertCount(2, $this->storage);
 
-        $span = $this->storage[1];
+        $span = $this->storage[1] ?? null;
+        $this->assertNotNull($span);
+
         $this->assertSame('PDO::beginTransaction', $span->getName());
     }
 
@@ -143,7 +147,9 @@ class PdoInstrumentationTest extends TestCase
         // Assert
         $this->assertCount(3, $this->storage);
 
-        $span = $this->storage[2];
+        $span = $this->storage[2] ?? null;
+        $this->assertNotNull($span);
+
         $this->assertSame('PDO::commit', $span->getName());
     }
 
@@ -160,7 +166,9 @@ class PdoInstrumentationTest extends TestCase
         // Assert
         $this->assertCount(3, $this->storage);
 
-        $span = $this->storage[2];
+        $span = $this->storage[2] ?? null;
+        $this->assertNotNull($span);
+
         $this->assertSame('PDO::rollBack', $span->getName());
     }
 

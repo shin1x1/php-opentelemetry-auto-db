@@ -20,6 +20,7 @@ final class MysqliInstrumentation
             null,
             'https://opentelemetry.io/schemas/1.24.0'
         );
+        /** @var WeakMap<mysqli_stmt, string> */
         $preparedStatements = new WeakMap();
 
         // connect
