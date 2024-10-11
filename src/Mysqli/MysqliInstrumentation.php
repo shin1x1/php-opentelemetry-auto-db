@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Shin1x1\OpenTelemetry\Auto\Db\Mysqli;
@@ -9,6 +10,7 @@ use OpenTelemetry\API\Instrumentation\CachedInstrumentation;
 use Shin1x1\OpenTelemetry\Auto\Db\Util\TraceUtil;
 use Throwable;
 use WeakMap;
+
 use function OpenTelemetry\Instrumentation\hook;
 
 final class MysqliInstrumentation
@@ -18,7 +20,7 @@ final class MysqliInstrumentation
         $instrumentation = new CachedInstrumentation(
             'com.shin1x1.php-otel-auto-instrumentaion.mysqli',
             null,
-            'https://opentelemetry.io/schemas/1.24.0'
+            'https://opentelemetry.io/schemas/1.24.0',
         );
         /** @var WeakMap<mysqli_stmt, string> */
         $preparedStatements = new WeakMap();
@@ -32,7 +34,7 @@ final class MysqliInstrumentation
             },
             post: static function (?object $object, array $params, mixed $statement, ?Throwable $exception) {
                 TraceUtil::end($exception);
-            }
+            },
         );
         hook(
             null,
@@ -42,7 +44,7 @@ final class MysqliInstrumentation
             },
             post: static function (?object $object, array $params, mixed $statement, ?Throwable $exception) {
                 TraceUtil::end($exception);
-            }
+            },
         );
 
         // query
@@ -56,7 +58,7 @@ final class MysqliInstrumentation
                 },
                 post: static function (?object $object, array $params, mixed $statement, ?Throwable $exception) {
                     TraceUtil::end($exception);
-                }
+                },
             );
             hook(
                 null,
@@ -67,7 +69,7 @@ final class MysqliInstrumentation
                 },
                 post: static function (?object $object, array $params, mixed $statement, ?Throwable $exception) {
                     TraceUtil::end($exception);
-                }
+                },
             );
         }
 
@@ -77,21 +79,21 @@ final class MysqliInstrumentation
             'prepare',
             post: static function (mysqli $mysqi, array $params, mysqli_stmt $mysqli_stmt, ?Throwable $exception) use ($preparedStatements) {
                 $preparedStatements[$mysqli_stmt] = $params[0];
-            }
+            },
         );
         hook(
             mysqli_stmt::class,
             'prepare',
             post: static function (mysqli_stmt $mysqli_stmt, array $params) use ($preparedStatements) {
                 $preparedStatements[$mysqli_stmt] = $params[0];
-            }
+            },
         );
         hook(
             null,
             self::getFunctionName('prepare'),
             post: static function (?object $object, array $params, mysqli_stmt $mysqli_stmt, ?Throwable $exception) use ($preparedStatements) {
                 $preparedStatements[$mysqli_stmt] = $params[1];
-            }
+            },
         );
 
         hook(
@@ -104,7 +106,7 @@ final class MysqliInstrumentation
             },
             post: static function (?object $object, array $params, mixed $statement, ?Throwable $exception) {
                 TraceUtil::end($exception);
-            }
+            },
         );
         hook(
             null,
@@ -116,7 +118,7 @@ final class MysqliInstrumentation
             },
             post: static function (?object $object, array $params, mixed $statement, ?Throwable $exception) {
                 TraceUtil::end($exception);
-            }
+            },
         );
     }
 

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Shin1x1\OpenTelemetry\Auto\Db\Util;
@@ -21,9 +22,8 @@ final class TraceUtil
         ?string               $class,
         string                $function,
         ?string               $filename,
-        ?int                  $lineno
-    ): SpanBuilderInterface
-    {
+        ?int                  $lineno,
+    ): SpanBuilderInterface {
         assert(strlen($name) > 0);
 
         return $instrumentation->tracer()
@@ -40,15 +40,14 @@ final class TraceUtil
         string                $function,
         ?string               $filename,
         ?int                  $lineno,
-    ): SpanInterface
-    {
+    ): SpanInterface {
         $builder = TraceUtil::makeBuilder(
             $instrumentation,
             self::createTitle($class, $function),
             $class,
             $function,
             $filename,
-            $lineno
+            $lineno,
         )
             ->setSpanKind(SpanKind::KIND_CLIENT);
         $parent = Context::getCurrent();
@@ -69,8 +68,7 @@ final class TraceUtil
         string                $function,
         ?string               $filename,
         ?int                  $lineno,
-    ): SpanInterface
-    {
+    ): SpanInterface {
         if (count($params) > 0) {
             $sql = sprintf('%s %s', $sql, json_encode($params));
         }

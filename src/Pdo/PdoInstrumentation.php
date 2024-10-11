@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Shin1x1\OpenTelemetry\Auto\Db\Pdo;
@@ -10,6 +11,7 @@ use PDOStatement;
 use Shin1x1\OpenTelemetry\Auto\Db\Util\TraceUtil;
 use Throwable;
 use WeakMap;
+
 use function OpenTelemetry\Instrumentation\hook;
 
 final class PdoInstrumentation
@@ -19,7 +21,7 @@ final class PdoInstrumentation
         $instrumentation = new CachedInstrumentation(
             'com.shin1x1.php-otel-auto-instrumentaion.pdo',
             null,
-            'https://opentelemetry.io/schemas/1.24.0'
+            'https://opentelemetry.io/schemas/1.24.0',
         );
         /** @var WeakMap<PDOStatement, BoundParameters> */
         $boundParameters = new WeakMap();
@@ -43,7 +45,7 @@ final class PdoInstrumentation
             },
             post: static function (PDO $pdo, array $params, mixed $statement, ?Throwable $exception) {
                 TraceUtil::end($exception);
-            }
+            },
         );
 
         hook(
@@ -80,7 +82,7 @@ final class PdoInstrumentation
                 },
                 post: static function (PDO $pdo, array $params, mixed $retval, ?Throwable $exception) {
                     TraceUtil::end($exception);
-                }
+                },
             );
         }
 
@@ -93,7 +95,7 @@ final class PdoInstrumentation
                 },
                 post: static function (PDO $pdo, array $params, mixed $retval, ?Throwable $exception) {
                     TraceUtil::end($exception);
-                }
+                },
             );
         }
 
@@ -114,13 +116,12 @@ final class PdoInstrumentation
                     $class,
                     $function,
                     $filename,
-                    $lineno
+                    $lineno,
                 );
             },
             post: static function (PDOStatement $statement, array $params, mixed $retval, ?Throwable $exception) {
                 TraceUtil::end($exception);
-            }
+            },
         );
     }
 }
-
