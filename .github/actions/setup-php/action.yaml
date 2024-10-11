@@ -1,0 +1,15 @@
+name: setup-php
+description: Setup PHP
+
+runs:
+  using: composite
+  steps:
+    - name: Setup PHP with PECL extension
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: opentelemetry pdo mysqli
+        tools: phpstan, cs2pr
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress

@@ -5,8 +5,12 @@ install:
 
 .PHONY: test
 test:
-	docker compose exec php-fpm ./vendor/bin/phpunit --do-not-cache-result
+	docker compose run --rm php-fpm ./vendor/bin/phpunit --do-not-cache-result
 
 .PHONY: clean
 clean:
 	docker compose down -v
+
+.PHONY: phpstan
+phpstan:
+	docker compose run --rm php-fpm ./vendor/bin/phpstan

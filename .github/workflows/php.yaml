@@ -17,7 +17,6 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     services:
@@ -34,15 +33,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup PHP with PECL extension
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          extensions: opentelemetry pdo mysqli
-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-progress
-
+      - uses: ./.github/actions/setup-php
       - name: Run test suite
         run: ./vendor/bin/phpunit
+
+  phpstan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-php
+      - name: Run phpstan
+        run: ./vendor/bin/phpstan --error-format=github | cs2pr
