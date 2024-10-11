@@ -9,6 +9,12 @@ on:
 permissions:
   contents: read
 
+env:
+  DB_HOST: 127.0.0.1
+  DB_USER: user
+  DB_PASS: pass
+  DB_NAME: app
+
 jobs:
   build:
 
@@ -18,10 +24,10 @@ jobs:
       mysql:
         image: mysql:latest
         env:
-          MYSQL_ROOT_PASSWORD: pass
-          MYSQL_USER: user
-          MYSQL_PASSWORD: pass
-          MYSQL_DATABASE: app
+          MYSQL_ROOT_PASSWORD: ${{ env.DB_PASS }}
+          MYSQL_USER: ${{ env.DB_USER }}
+          MYSQL_PASSWORD: ${{ env.DB_PASS }}
+          MYSQL_DATABASE: ${{ env.DB_NAME }}
         ports:
           - 3306/tcp
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
