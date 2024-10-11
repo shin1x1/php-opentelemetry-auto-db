@@ -12,4 +12,5 @@ runs:
         tools: phpstan, cs2pr
 
     - name: Install dependencies
+      shell: bash
       run: composer install --prefer-dist --no-progress
