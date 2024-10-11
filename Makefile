@@ -14,3 +14,7 @@ clean:
 .PHONY: phpstan
 phpstan:
 	docker compose run --rm php-fpm ./vendor/bin/phpstan
+
+.PHONY: php-cs-fixer-fix
+php-cs-fixer-fix:
+	docker compose run --rm php-fpm ./vendor/bin/php-cs-fixer fix --diff -v

@@ -15,7 +15,8 @@
   "require-dev": {
     "open-telemetry/sdk": "^1.1",
     "phpunit/phpunit": "^11.4",
-    "phpstan/phpstan": "^1.12"
+    "phpstan/phpstan": "^1.12",
+    "friendsofphp/php-cs-fixer": "^3.64"
   },
   "autoload": {
     "psr-4": {
