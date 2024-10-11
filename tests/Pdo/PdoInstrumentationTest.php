@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Shin1x1\Tests\OpenTelemetry\Auto\Db\Pdo;
@@ -177,8 +178,8 @@ class PdoInstrumentationTest extends TestCase
         $this->storage = new ArrayObject();
         $tracerProvider = new TracerProvider(
             new SimpleSpanProcessor(
-                new InMemoryExporter($this->storage)
-            )
+                new InMemoryExporter($this->storage),
+            ),
         );
 
         $this->scope = Configurator::create()
