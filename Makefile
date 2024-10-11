@@ -5,7 +5,7 @@ install:
 
 .PHONY: test
 test:
-	docker compose exec php-fpm ./vendor/bin/phpunit
+	docker compose exec php-fpm ./vendor/bin/phpunit --do-not-cache-result
 
 .PHONY: clean
 clean:

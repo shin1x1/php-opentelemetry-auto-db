@@ -15,12 +15,6 @@ use PHPUnit\Framework\TestCase;
 
 class MysqliInstrumentationTest extends TestCase
 {
-    private const HOST = 'mysql';
-    private const USER = 'user';
-    private const PASS = 'pass';
-    private const DB_NAME = 'app';
-
-
     #[Test]
     public function mysqi_construct(): void
     {
@@ -38,7 +32,7 @@ class MysqliInstrumentationTest extends TestCase
     public function mysqi_connect(): void
     {
         // Arrange & Act
-        mysqli_connect(self::HOST, self::USER, self::PASS, self::DB_NAME);
+        mysqli_connect($this->getDBHost(), $this->getDBUser(), $this->getDBPass(), $this->getDBName());
 
         // Assert
         $this->assertCount(1, $this->storage);
@@ -143,13 +137,33 @@ class MysqliInstrumentationTest extends TestCase
         $this->scope->detach();
     }
 
+    private function getDBHost(): string
+    {
+        return getenv('DB_HOST') ?? 'localhost';
+    }
+
+    private function getDBUser(): string
+    {
+        return getenv('DB_USER') ?? 'user';
+    }
+
+    private function getDBPass(): string
+    {
+        return getenv('DB_PASS') ?? 'pass';
+    }
+
+    private function getDBName(): string
+    {
+        return getenv('DB_NAME') ?? 'app';
+    }
+
     private function createMysqli(): mysqli
     {
         return new mysqli(
-            self::HOST,
-            self::USER,
-            self::PASS,
-            self::DB_NAME,
+            $this->getDBHost(),
+            $this->getDBUser(),
+            $this->getDBPass(),
+            $this->getDBName(),
         );
     }
 

@@ -11,6 +11,10 @@ services:
       OTEL_SERVICE_NAME: app
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
       OTEL_PHP_DISABLED_INSTRUMENTATIONS: pdo
+      DB_HOST: mysql
+      DB_USER: user
+      DB_PASS: pass
+      DB_NAME: app
     depends_on:
       mysql:
         condition: service_healthy
